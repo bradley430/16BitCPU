@@ -44,7 +44,7 @@
 **`Special Bits`**
 
 - **`9-8`**`: Function`  
-- **`7-5`**`: First Operand (Rn)`  
-- **`4-2`**`: Second Operand (Rm)`  
-- **`1-0`**`: 11`
+- **`7-6`**`: XX`  
+- **`5-3`**`: Destination/Source Register (Rd)`  
+- **`2-0`**`: XXX`
 
