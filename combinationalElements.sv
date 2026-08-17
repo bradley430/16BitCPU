@@ -19,7 +19,7 @@ module alu(input logic [15:0] a, b,
 
     assign condb = (ALUControl == 3'b001) ? ~b : b;
 
-    adder add(a, condb, (ALUControl == 3'b001) ? 1 : 0, adderResult, rawCarry);
+    adder add(a, condb, (ALUControl == 3'b001), adderResult, rawCarry);
 
     always_comb begin : ALU
         
@@ -47,10 +47,10 @@ module alu(input logic [15:0] a, b,
 endmodule
 
 module extend(input logic [8:0] offset,
-              output logic [15:0] extended
+              output logic [15:0] extenderResult
 );
 
-    assign extended = {7{offset[8]}, offset};
+    assign extenderResult = {7{offset[8]}, offset};
 
 endmodule
 
@@ -76,13 +76,37 @@ module shifter(input logic signed [15:0] val,
 
 endmodule
 
-module mux2 (
-    input logic [15:0] a, b,
+module mux2 #(
+    WIDTH = 16;
+) (
+    input logic [WIDTH - 1:0] a, b,
     input logic s,
-    output logic [15:0] selected
+    output logic [WIDTH - 1:0] selected
 );
 
-    assign selected = s ? a : b; //take a if s, take b if not s
+    assign selected = s ? a : b; 
+    //takes a if s, takes b if not s
+    
+endmodule
+
+module mux3 #(
+    WIDTH = 16;
+)(
+    input logic [WIDTH - 1:0] a, b, c
+    input logic [1:0] s,
+    output logic [WIDTH - 1:0] selected
+);
+
+    always_comb begin : mux3
+
+        case (s)
+            2'b00: selected = a;
+            2'b01: selected = b;
+            2'b10: selected = c;
+            default: selected = a;
+        endcase
+
+    end
     
 endmodule
 
@@ -92,8 +116,8 @@ module regFile (
     input logic clk, registerWrite, reset,
     output logic [15:0] read1, read2, read3
 );
-    logic[15:0] rf[6:0];
-    logic [15:0] R7 = r7;
+    logic[15:0] R7, rf[6:0];
+    assign R7 = r7;
 
     always_ff @(posedge clk) begin : Write
 
@@ -105,7 +129,7 @@ module regFile (
     
     assign read1 = (address1 == 3'b111) ? R7 : rf[address1];
     assign read2 = (address2 == 3'b111) ? R7 : rf[address2];
-    assign read3 = rf[writeAddress];
+    assign read3 = (writeAddress == 3'b111) ? R7 : rf[writeAddress];
 
 endmodule
 
