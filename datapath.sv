@@ -1,35 +1,3 @@
-module PCReg (
-    input logic [15:0] nextPC,
-    input logic clk, reset,
-    output logic [15:0] PC
-);
-
-    always_ff @( posedge clk ) begin : PCRegister
-
-        if(reset) PC <= 0;
-
-        else PC <= nextPC;
-        
-    end
-    
-endmodule
-
-module spReg (
-    input logic [15:0] nextSP,
-    input logic clk, reset,
-    output logic [15:0] SP
-);
-
-    always_ff @( posedge clk ) begin : SPRegister
-
-        if(reset) SP <= 0;
-
-        else SP <= nextSP;
-        
-    end
-    
-endmodule
-
 module datapath (
     input logic clk, reset,
     branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, flagWrite, halt, linkReturn,
