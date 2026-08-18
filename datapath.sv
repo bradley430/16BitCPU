@@ -1,6 +1,6 @@
 module datapath (
     input logic clk, reset,
-    branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, flagWrite, halt, linkReturn,
+    branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, halt, linkReturn,
     input logic [1:0] regSrc, writeReg, shiftFunction,
     input logic [2:0] aluFunction,
     input logic [15:0] instruction,
@@ -15,7 +15,7 @@ module datapath (
     //PC logic 
     adder pcAdd(.a(PC), .b(16'b1), .cin(0), .sum(PCPlus1), .cout(PCOverflow));
     mux2 pcSrc(.a(memToRegResult), .b(PCPlus1), .selected(PCSrc), .s(branch | linkReturn));
-    PCReg pcReg(.nextPC(PCSrc), .clk(clk), .reset(reset), .PC(PC));
+    PCReg pcReg(.nextPC(PCSrc), .clk(clk), .reset(reset), .halt(halt), .PC(PC));
 
 
     logic[15:0] writeData, rd1, rd2, rd3, spPush;

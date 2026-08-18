@@ -1,21 +1,3 @@
-module enfflopr #(
-    WIDTH = 16
-) (
-    input logic [WIDTH - 1:0] d,
-    input logic clk, reset, en,
-    output logic [WIDTH - 1:0] q
-);
-
-    always_ff @(posedge clk) begin : FlipFlop
-
-        if(reset) q <= 0;
-
-        else if(en) q <= d;
-        
-    end
-    
-endmodule
-
 module controlUnit (
     input logic clk, reset,
     input logic [15:0] instr,
@@ -31,15 +13,14 @@ module controlUnit (
     assign cond = instr[15:12];
     assign opCode = instr[11:10];
 
-    logic pbranch, pshiftOp, pmemToReg, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, phalt, plinkReturn;
+    logic pbranch, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, phalt, plinkReturn;
 
     decoder dec (.opCode(opCode), .functSpecial(instr[9:8]), .functDP(instr[9:6]), .destinationReg(instr[5:3]), .sourceReg(instr[2:0]), .memory(instr[9]), .link(instr[9]), 
-                 .plinkReturn(plinkReturn), .pbranch(pbranch), .pshiftOp(pshiftOp), .pmemToReg(pmemToReg), .ppush(ppush), .ppop(ppop), .pregisterWrite(pregisterWrite), .pmemoryWrite(pmemoryWrite), .pflagWrite(pflagWrite), .phalt(phalt),
+                 .plinkReturn(plinkReturn), .pbranch(pbranch), .shiftOp(shiftOp), .memToReg(memToReg), .ppush(ppush), .ppop(ppop), .pregisterWrite(pregisterWrite), .pmemoryWrite(pmemoryWrite), .pflagWrite(pflagWrite), .phalt(phalt),
                  .regSrc(regSrc), .writeReg(writeReg), .shiftFunction(shiftFunction), .aluFunction(aluFunction));
 
-    condLogic conditionals (clk, reset, plinkReturn, pregisterWrite, pmemoryWrite, phalt, ppush, ppop, pflagWrite, pbranch, 
-                            flags, cond,
-                            linkReturn, registerWrite, memoryWrite, halt, push, pop, flagWrite, branch);
+    condLogic conditionals (.clk(clk), .reset(reset), .plinkReturn(plinkReturn), .pregisterWrite(pregisterWrite), .pmemoryWrite(pmemoryWrite), .phalt(phalt), .ppush(ppush), .ppop(ppop), .pflagWrite(pflagWrite), .pbranch(pbranch), 
+                            .ALUFlags(flags), .cond(cond), .linkReturn(linkReturn), .registerWrite(registerWrite), .memoryWrite(memoryWrite), .halt(halt), .push(push), .pop(pop), .flagWrite(flagWrite), .branch(branch));
 
 endmodule
 
@@ -49,7 +30,7 @@ module decoder (
     input logic [2:0] destinationReg, sourceReg,
     input logic memory, link, 
     output logic plinkReturn,
-    output logic pbranch, pshiftOp, pmemToReg, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, phalt,
+    output logic pbranch, shiftOp, memToReg, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, phalt,
     output logic [1:0] regSrc, writeReg, shiftFunction,
     output logic [2:0] aluFunction
 );
@@ -120,7 +101,7 @@ module decoder (
         
         plinkReturn = ({opCode, functDP, destinationReg, sourceReg} == 12'b001011111110);
 
-        {pbranch, regSrc, pshiftOp, pmemToReg, writeReg, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, shiftFunction, phalt, aluFunction} = controls;
+        {pbranch, regSrc, shiftOp, memToReg, writeReg, ppush, ppop, pregisterWrite, pmemoryWrite, pflagWrite, shiftFunction, phalt, aluFunction} = controls;
 
     end
 

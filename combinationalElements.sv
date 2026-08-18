@@ -1,11 +1,14 @@
-module adder(input logic [15:0] a, b,
-             input logic cin,
-             output logic [15:0] sum,
-             output logic cout
+module instructionMemory (
+    input logic[15:0] address,
+    output logic [15:0] instruction
 );
 
-    assign {cout, sum} = a + b + cin;
+    logic[15:0] MEM[65535:0];
 
+    initial $readmemh("memfile.dat", MEM);
+
+    assign instruction = MEM[address];
+    
 endmodule
 
 module alu(input logic [15:0] a, b,
@@ -19,7 +22,7 @@ module alu(input logic [15:0] a, b,
 
     assign condb = (ALUControl == 3'b001) ? ~b : b;
 
-    adder add(a, condb, (ALUControl == 3'b001), adderResult, rawCarry);
+    adder add(.a(a), .b(condb), .cin((ALUControl == 3'b001)), .sum(adderResult), .cout(rawCarry));
 
     always_comb begin : ALU
         
@@ -40,7 +43,7 @@ module alu(input logic [15:0] a, b,
     assign negative = ALUResult[15];
     assign zero = (ALUResult[15:0] == 0);
     assign carry = (ALUControl[2:1] == 2'b00) & rawCarry;
-    assign overflow = (ALUControl[2:1] == 2'b00) & (a[15] ^ ALUresult[15]) & !(a[15] ^ b[15] ^ ALUControl[0]);
+    assign overflow = (ALUControl[2:1] == 2'b00) & (a[15] ^ ALUResult[15]) & !(a[15] ^ b[15] ^ ALUControl[0]);
 
     assign ALUFlags = {negative, zero, carry, overflow};
         
@@ -50,7 +53,7 @@ module extend(input logic [8:0] offset,
               output logic [15:0] extenderResult
 );
 
-    assign extenderResult = {7{offset[8]}, offset};
+    assign extenderResult = {{7{offset[8]}}, offset};
 
 endmodule
 
@@ -76,8 +79,18 @@ module shifter(input logic signed [15:0] val,
 
 endmodule
 
+module adder(input logic [15:0] a, b,
+             input logic cin,
+             output logic [15:0] sum,
+             output logic cout
+);
+
+    assign {cout, sum} = a + b + cin;
+
+endmodule
+
 module mux2 #(
-    WIDTH = 16;
+    WIDTH = 16
 ) (
     input logic [WIDTH - 1:0] a, b,
     input logic s,
@@ -90,9 +103,9 @@ module mux2 #(
 endmodule
 
 module mux3 #(
-    WIDTH = 16;
+    WIDTH = 16
 )(
-    input logic [WIDTH - 1:0] a, b, c
+    input logic [WIDTH - 1:0] a, b, c,
     input logic [1:0] s,
     output logic [WIDTH - 1:0] selected
 );
@@ -107,18 +120,5 @@ module mux3 #(
         endcase
 
     end
-    
-endmodule
-
-module instructionMemory (
-    input logic[15:0] address,
-    output logic [15:0] instruction
-);
-
-    logic[15:0] MEM[65535:0];
-
-    initial $readmemh("memfile.dat", MEM);
-
-    assign instruction = MEM[address];
     
 endmodule

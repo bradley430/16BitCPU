@@ -1,6 +1,6 @@
 module PCReg (
     input logic [15:0] nextPC,
-    input logic clk, reset,
+    input logic clk, reset, halt,
     output logic [15:0] PC
 );
 
@@ -8,7 +8,7 @@ module PCReg (
 
         if(reset) PC <= 0;
 
-        else PC <= nextPC;
+        else if (~halt) PC <= nextPC;
         
     end
     
