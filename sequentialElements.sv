@@ -14,7 +14,9 @@ module PCReg (
     
 endmodule
 
-module spReg (
+module spReg #(
+    SPACE = 256
+) (
     input logic [15:0] nextSP,
     input logic clk, reset,
     output logic [15:0] SP
@@ -22,7 +24,7 @@ module spReg (
 
     always_ff @( posedge clk ) begin : SPRegister
 
-        if(reset) SP <= 0;
+        if(reset) SP <= SPACE;
 
         else SP <= nextSP;
         
@@ -53,13 +55,15 @@ module regFile (
 
 endmodule
 
-module dataMemory (
+module dataMemory #(
+    SPACE = 256
+) (
     input logic[15:0] address, writeData,
     input logic clk, memoryWrite,
     output logic[15:0] read
 );
 
-    logic[15:0] RAM[65535:0];
+    logic[15:0] RAM[SPACE - 1:0];
 
     assign read = RAM[address];
 

@@ -1,4 +1,6 @@
-module CPU (
+module CPU #(
+    MEM_SPACE = 256
+) (
     input logic clk, reset
 );
 
@@ -12,7 +14,7 @@ module CPU (
 
     controlUnit controller(.clk(clk), .reset(reset), .instr(instruction), .flags(ALUFlags), .branch(branch), .shiftOp(shiftOp), .memToReg(memToReg), .push(push), .pop(pop), .registerWrite(registerWrite), .memoryWrite(memoryWrite), .flagWrite(flagWrite), .halt(halt), .linkReturn(linkReturn), .regSrc(regSrc), .writeReg(writeReg), .shiftFunction(shiftFunction), .aluFunction(ALUFunction));
 
-    datapath dp(.clk(clk), .reset(reset), .branch(branch), .shiftOp(shiftOp), .memToReg(memToReg), .push(push), .pop(pop), .registerWrite(registerWrite), .memoryWrite(memoryWrite), .halt(halt), .linkReturn(linkReturn), .regSrc(regSrc), .writeReg(writeReg), .shiftFunction(shiftFunction), .aluFunction(ALUFunction), .instruction(instruction), .PC(PC), .ALUFlags(ALUFlags));
+    datapath #(MEM_SPACE) dp(.clk(clk), .reset(reset), .branch(branch), .shiftOp(shiftOp), .memToReg(memToReg), .push(push), .pop(pop), .registerWrite(registerWrite), .memoryWrite(memoryWrite), .halt(halt), .linkReturn(linkReturn), .regSrc(regSrc), .writeReg(writeReg), .shiftFunction(shiftFunction), .aluFunction(ALUFunction), .instruction(instruction), .PC(PC), .ALUFlags(ALUFlags));
     
 endmodule
 
@@ -184,7 +186,9 @@ module condLogic (
 
 endmodule
 
-module datapath (
+module datapath #(
+    MEM_SPACE = 256
+) (
     input logic clk, reset,
     branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, halt, linkReturn,
     input logic [1:0] regSrc, writeReg, shiftFunction,
@@ -240,14 +244,14 @@ module datapath (
     adder pushAdder(.a(PUSH), .b(SP), .cin(16'b0), .sum(spPush), .cout(pushOverflow));
     mux2 popMux(.a(16'b1), .b(16'b0), .s(pop), .selected(POP));
     adder popAdder(.a(POP), .b(spPush), .cin(16'b0), .sum(spPushPop), .cout(popOverflow));
-    spReg SPReg(.nextSP(spPushPop), .clk(clk), .reset(reset), .SP(SP));
+    spReg #(MEM_SPACE) SPReg(.nextSP(spPushPop), .clk(clk), .reset(reset), .SP(SP));
 
     logic[15:0] memAddress, memRead;
 
     //memory logic
     mux2 memAddrMux(.a(spPush), .b(ALUResult), .s(push | pop), .selected(memAddress));
     
-    dataMemory memory(.address(memAddress), .writeData(rd3), .clk(clk), .memoryWrite(memoryWrite), .read(memRead));
+    dataMemory #(MEM_SPACE) memory(.address(memAddress), .writeData(rd3), .clk(clk), .memoryWrite(memoryWrite), .read(memRead));
     
     mux2 memToRegMux(.a(memRead), .b(ALUInput), .s(memToReg), .selected(memToRegResult));
 
@@ -269,7 +273,9 @@ module PCReg (
     
 endmodule
 
-module spReg (
+module spReg #(
+    SPACE = 256
+) (
     input logic [15:0] nextSP,
     input logic clk, reset,
     output logic [15:0] SP
@@ -277,7 +283,7 @@ module spReg (
 
     always_ff @( posedge clk ) begin : SPRegister
 
-        if(reset) SP <= 0;
+        if(reset) SP <= SPACE;
 
         else SP <= nextSP;
         
@@ -308,13 +314,15 @@ module regFile (
 
 endmodule
 
-module dataMemory (
+module dataMemory #(
+    SPACE = 256
+) (
     input logic[15:0] address, writeData,
     input logic clk, memoryWrite,
     output logic[15:0] read
 );
 
-    logic[15:0] RAM[65535:0];
+    logic[15:0] RAM[SPACE - 1:0];
 
     assign read = RAM[address];
 

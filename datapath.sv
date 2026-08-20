@@ -1,4 +1,6 @@
-module datapath (
+module datapath #(
+    MEM_SPACE = 256
+) (
     input logic clk, reset,
     branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, halt, linkReturn,
     input logic [1:0] regSrc, writeReg, shiftFunction,
@@ -54,14 +56,14 @@ module datapath (
     adder pushAdder(.a(PUSH), .b(SP), .cin(16'b0), .sum(spPush), .cout(pushOverflow));
     mux2 popMux(.a(16'b1), .b(16'b0), .s(pop), .selected(POP));
     adder popAdder(.a(POP), .b(spPush), .cin(16'b0), .sum(spPushPop), .cout(popOverflow));
-    spReg SPReg(.nextSP(spPushPop), .clk(clk), .reset(reset), .SP(SP));
+    spReg #(MEM_SPACE) SPReg(.nextSP(spPushPop), .clk(clk), .reset(reset), .SP(SP));
 
     logic[15:0] memAddress, memRead;
 
     //memory logic
     mux2 memAddrMux(.a(spPush), .b(ALUResult), .s(push | pop), .selected(memAddress));
     
-    dataMemory memory(.address(memAddress), .writeData(rd3), .clk(clk), .memoryWrite(memoryWrite), .read(memRead));
+    dataMemory #(MEM_SPACE) memory(.address(memAddress), .writeData(rd3), .clk(clk), .memoryWrite(memoryWrite), .read(memRead));
     
     mux2 memToRegMux(.a(memRead), .b(ALUInput), .s(memToReg), .selected(memToRegResult));
 
