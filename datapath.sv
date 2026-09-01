@@ -27,7 +27,7 @@ module datapath #(
     //register file logic
     mux2 #(.WIDTH(3)) addr1Mux (.a(3'b111), .b(instruction[5:3]), .s(branch), .selected(addr1));
     mux3 #(.WIDTH(3)) writeAddrMux (.a(instruction[5:3]), .b(instruction[8:6]), .c(3'b110), .s(regSrc), .selected(writeAddr));
-    mux3 writeDataMux(.a(memToRegResult), .b(spPush), .c(PCPlus1), .s(writeReg), .selected(writeData));
+    mux4 writeDataMux(.a(memToRegResult), .b(spPush), .c(PCPlus1), .d(16'b1), .s(writeReg), .selected(writeData));
     regFile regfile(.address1(addr1), .address2(instruction[2:0]), .writeAddress(writeAddr), .writeData(writeData), .r7(PCPlus1), .clk(clk), .reset(reset), .registerWrite(registerWrite), .read1(rd1), .read2(rd2), .read3(rd3));
     
     logic [15:0] extenderResult;

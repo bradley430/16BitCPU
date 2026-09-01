@@ -61,6 +61,7 @@ module decoder (
                 4'b1100: controls = 18'b000000000101000000;
                 4'b1101: controls = 18'b000000000101000001;
                 4'b1110: controls = 18'b000000100100000000;
+                4'b1111: controls = 18'b000001100100000000;
 
                 default: controls = 18'b000000000000000000;
             endcase

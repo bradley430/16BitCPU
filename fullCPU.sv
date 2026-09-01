@@ -1,14 +1,15 @@
 module CPU #(
     MEM_SPACE = 256
 ) (
-    input logic clk, reset
+    input logic clk, reset,
+    output logic halt
 );
 
     logic [15:0] instruction, PC;
     logic [3:0] ALUFlags;
     logic [2:0] ALUFunction;
     logic [1:0] regSrc, writeReg, shiftFunction;
-    logic branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, flagWrite, halt, linkReturn;
+    logic branch, shiftOp, memToReg, push, pop, registerWrite, memoryWrite, flagWrite, linkReturn;
 
     instructionMemory imem(.address(PC), .instruction(instruction));
 
@@ -81,6 +82,7 @@ module decoder (
                 4'b1100: controls = 18'b000000000101000000;
                 4'b1101: controls = 18'b000000000101000001;
                 4'b1110: controls = 18'b000000100100000000;
+                4'b1111: controls = 18'b000001100100000000;
 
                 default: controls = 18'b000000000000000000;
             endcase
@@ -215,7 +217,7 @@ module datapath #(
     //register file logic
     mux2 #(.WIDTH(3)) addr1Mux (.a(3'b111), .b(instruction[5:3]), .s(branch), .selected(addr1));
     mux3 #(.WIDTH(3)) writeAddrMux (.a(instruction[5:3]), .b(instruction[8:6]), .c(3'b110), .s(regSrc), .selected(writeAddr));
-    mux3 writeDataMux(.a(memToRegResult), .b(spPush), .c(PCPlus1), .s(writeReg), .selected(writeData));
+    mux4 writeDataMux(.a(memToRegResult), .b(spPush), .c(PCPlus1), .d(16'b1), .s(writeReg), .selected(writeData));
     regFile regfile(.address1(addr1), .address2(instruction[2:0]), .writeAddress(writeAddr), .writeData(writeData), .r7(PCPlus1), .clk(clk), .reset(reset), .registerWrite(registerWrite), .read1(rd1), .read2(rd2), .read3(rd3));
     
     logic [15:0] extenderResult;
@@ -304,7 +306,7 @@ module regFile (
 
         if(reset) for(int i = 0; i < 7; i++) rf[i] <= 16'b0;
 
-        else if(registerWrite & writeAddress != 3'b111) rf[writeAddress] <= writeData;
+        else if(registerWrite & (writeAddress != 3'b111)) rf[writeAddress] <= writeData;
         
     end
     
@@ -470,6 +472,28 @@ module mux3 #(
             2'b00: selected = a;
             2'b01: selected = b;
             2'b10: selected = c;
+            default: selected = a;
+        endcase
+
+    end
+    
+endmodule
+
+module mux4 #(
+    WIDTH = 16
+) (
+    input logic [WIDTH - 1:0] a, b, c, d,
+    input logic [1:0] s,
+    output logic [WIDTH - 1:0] selected
+);
+
+    always_comb begin : mux4
+
+        case (s)
+            2'b00: selected = a;
+            2'b01: selected = b;
+            2'b10: selected = c;
+            2'b11: selected = d; 
             default: selected = a;
         endcase
 

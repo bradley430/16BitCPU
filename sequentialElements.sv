@@ -45,7 +45,7 @@ module regFile (
 
         if(reset) for(int i = 0; i < 7; i++) rf[i] <= 16'b0;
 
-        else if(registerWrite & writeAddress != 3'b111) rf[writeAddress] <= writeData;
+        else if(registerWrite & (writeAddress != 3'b111)) rf[writeAddress] <= writeData;
         
     end
     

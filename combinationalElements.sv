@@ -122,3 +122,25 @@ module mux3 #(
     end
     
 endmodule
+
+module mux4 #(
+    WIDTH = 16
+) (
+    input logic [WIDTH - 1:0] a, b, c, d,
+    input logic [1:0] s,
+    output logic [WIDTH - 1:0] selected
+);
+
+    always_comb begin : mux4
+
+        case (s)
+            2'b00: selected = a;
+            2'b01: selected = b;
+            2'b10: selected = c;
+            2'b11: selected = d; 
+            default: selected = a;
+        endcase
+
+    end
+    
+endmodule
